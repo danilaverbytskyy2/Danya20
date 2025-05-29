@@ -192,7 +192,7 @@
 
         @media (max-width: 400px) {
             .character-img-container {
-                height: 180px; /* Еще меньше для очень маленьких экранов */
+                height: 130px; /* Еще меньше для очень маленьких экранов */
             }
 
             .character-name {
@@ -204,43 +204,6 @@
         @media (min-width: 401px) and (max-width: 767px) {
             .character-img-container {
                 height: 180px; /* Промежуточный размер для средних мобильных */
-            }
-        }
-
-        .characters-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin: 1.5rem 0;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Для плавного скролла на iOS */
-        }
-
-        .character-item {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-            background-color: white;
-            touch-action: pan-y; /* Разрешаем вертикальный скролл */
-        }
-
-        @media (max-width: 767px) {
-            .characters-grid {
-                display: flex;
-                flex-direction: column;
-                gap: 0.8rem;
-                padding-bottom: 1rem;
-            }
-
-            .character-item {
-                width: 100%;
-                min-height: 120px;
-            }
-
-            .character-img-container {
-                height: 150px;
             }
         }
     </style>
@@ -393,37 +356,31 @@
     }
 
     function initDragAndDrop() {
-    const charactersGrid = document.getElementById('charactersGrid');
-    const characterItems = document.querySelectorAll('.character-item');
+        const charactersGrid = document.getElementById('charactersGrid');
+        const characterItems = document.querySelectorAll('.character-item');
 
-    let draggedItem = null;
-    let touchStartY = 0;
-    let isScrolling = false;
+        let draggedItem = null;
+        let touchStartY = 0;
 
-    characterItems.forEach(item => {
-        item.addEventListener('touchstart', function (e) {
-            // Проверяем, не начался ли скролл
-            if (isScrolling) return;
+        characterItems.forEach(item => {
+            item.addEventListener('touchstart', function (e) {
+                e.preventDefault();
+                draggedItem = this;
+                draggedItem.classList.add('dragging');
+                touchStartY = e.touches[0].clientY;
 
-            e.preventDefault();
-            draggedItem = this;
-            draggedItem.classList.add('dragging');
-            touchStartY = e.touches[0].clientY;
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(10);
+                }
+            }, {passive: false});
 
-            if ('vibrate' in navigator) {
-                navigator.vibrate(10);
-            }
-        }, {passive: false});
+            item.addEventListener('touchmove', function (e) {
+                if (!draggedItem) return;
+                e.preventDefault();
 
-        item.addEventListener('touchmove', function (e) {
-            if (!draggedItem || isScrolling) return;
-            e.preventDefault();
+                const touch = e.touches[0];
+                const touchY = touch.clientY;
 
-            const touch = e.touches[0];
-            const touchY = touch.clientY;
-
-            // Определяем, это скролл или перетаскивание
-            if (Math.abs(touchY - touchStartY) > 10) {
                 draggedItem.style.position = 'absolute';
                 draggedItem.style.top = `${touchY - draggedItem.offsetHeight / 2}px`;
                 draggedItem.style.left = `${draggedItem.offsetLeft}px`;
@@ -441,36 +398,53 @@
                         charactersGrid.insertBefore(draggedItem, characterBelow.nextSibling);
                     }
                 }
-            } else {
-                isScrolling = true;
+            }, {passive: false});
+
+            item.addEventListener('touchend', function () {
+                if (!draggedItem) return;
+
                 draggedItem.classList.remove('dragging');
+                draggedItem.style.position = '';
+                draggedItem.style.top = '';
+                draggedItem.style.left = '';
                 draggedItem = null;
-            }
-        }, {passive: false});
+            });
 
-        item.addEventListener('touchend', function () {
-            if (!draggedItem) return;
+            // Для десктопов
+            item.setAttribute('draggable', true);
+            item.addEventListener('dragstart', function () {
+                draggedItem = this;
+                draggedItem.classList.add('dragging');
+            });
 
-            draggedItem.classList.remove('dragging');
-            draggedItem.style.position = '';
-            draggedItem.style.top = '';
-            draggedItem.style.left = '';
-            draggedItem = null;
-            isScrolling = false;
+            item.addEventListener('dragover', function (e) {
+                e.preventDefault();
+            });
 
-            // Небольшая задержка перед возможным новым перетаскиванием
-            setTimeout(() => { isScrolling = false; }, 100);
+            item.addEventListener('dragenter', function (e) {
+                e.preventDefault();
+                this.classList.add('over');
+            });
+
+            item.addEventListener('dragleave', function () {
+                this.classList.remove('over');
+            });
+
+            item.addEventListener('drop', function () {
+                if (draggedItem !== this) {
+                    charactersGrid.insertBefore(draggedItem, this);
+                }
+                this.classList.remove('over');
+            });
+
+            item.addEventListener('dragend', function () {
+                characterItems.forEach(item => {
+                    item.classList.remove('over');
+                    item.classList.remove('dragging');
+                });
+            });
         });
-
-        // Остальной код обработки drag'n'drop для десктопов остается без изменений
-        // ...
-    });
-
-    // Добавляем обработчик для скролла
-    charactersGrid.addEventListener('scroll', function() {
-        isScrolling = true;
-    });
-}
+    }
 
     function updateMainPagePoints(points) {
         if (window.opener) {
