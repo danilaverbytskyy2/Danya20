@@ -179,6 +179,33 @@
                 height: 100px;
             }
         }
+
+        .character-img-container {
+            width: 100%;
+            height: 120px; /* Уменьшил высоту для мобильных */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+        }
+
+        @media (max-width: 400px) {
+            .character-img-container {
+                height: 80px; /* Еще меньше для очень маленьких экранов */
+            }
+
+            .character-name {
+                font-size: 0.8rem; /* Уменьшаем размер шрифта для имен */
+                padding: 0.3rem; /* Уменьшаем отступы */
+            }
+        }
+
+        @media (min-width: 401px) and (max-width: 767px) {
+            .character-img-container {
+                height: 100px; /* Промежуточный размер для средних мобильных */
+            }
+        }
     </style>
 </head>
 <body>
@@ -320,9 +347,11 @@
         div.className = 'character-item';
         div.dataset.id = character.id;
         div.innerHTML = `
-                <img src="${character.image}" alt="${character.name}" class="character-img">
-                <div class="character-name">${character.name}</div>
-            `;
+        <div class="character-img-container">
+            <img src="${character.image}" alt="${character.name}" class="character-img">
+        </div>
+        <div class="character-name">${character.name}</div>
+    `;
         return div;
     }
 
