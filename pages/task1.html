@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Конкурс 1 - Викторина</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4CC9F0;
+            --accent-color: #20C997;
+        }
+
+        body {
+            font-family: 'Comic Neue', 'Arial Rounded MT Bold', 'Segoe UI Emoji', sans-serif;
+            background-color: #f8f9fa;
+            padding-bottom: 2rem;
+        }
+
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), #FF8E8E);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-container {
+            background: white;
+            border-radius: 50px;
+            padding: 0.3rem;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            background-color: var(--accent-color);
+            border-radius: 50px;
+            transition: width 0.5s ease;
+        }
+
+        .question-card {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .question-card.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .answer-input {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.8rem;
+            font-size: 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .check-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem;
+            font-size: 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .check-btn:hover {
+            background-color: #3aa8d8;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .nav-btn {
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background-color: #dee2e6;
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            display: none;
+        }
+
+        .correct-feedback {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .time-stamp {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+
+        .explanation {
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .home-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.2rem;
+            font-size: 1rem;
+            margin-top: 1.5rem;
+            display: block;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .home-btn:hover {
+            background-color: #e05555;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .question-card {
+                padding: 1rem;
+            }
+        }
+
+        .incorrect-feedback {
+            background-color: #f8d7da;
+            color: #721c24;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .incorrect-image {
+            max-width: 100%;
+            height: auto;
+            margin-top: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .incorrect-video {
+            max-width: 100%;
+            height: auto;
+            margin-top: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="header-bar">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div id="userNameDisplay" class="fw-bold"></div>
+            <div id="progressCount">0/20</div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div id="questionsContainer">
+        <!-- Вопросы будут добавлены через JS -->
+    </div>
+
+    <div class="nav-buttons">
+        <button class="nav-btn" id="prevBtn" onclick="prevQuestion()">← Назад</button>
+        <span id="questionCounter">1/20</span>
+        <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">Далее →</button>
+    </div>
+
+    <!-- Новая кнопка возврата на главную -->
+    <a href="../index.html" class="home-btn">Вернуться на главную</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 20 вопросов с ответами и пояснениями
+    const questions = [
+        {
+            question: "Мальчик Даня родился 27 мая 2005 года. Сколько ему лет сейчас? (число)",
+            answer: "20",
+            explanation: "Действительно, данечке уже 20 лет."
+        },
+        {
+            question: "Я загадал день недели. Отгадай (Rus)",
+            answer: "Четверг",
+            explanation: "Четвёртый день («четверг») Божьего сотворения мира, появление птиц и рыб (Бытие. 1:20-23)"
+        },
+        {
+            question: "Какой мой любимый язык программирования? (Eng)",
+            answer: "Python",
+            explanation: "Ну он удобный и я синтаксис хорошо помню ещё с 11 класса. Могу всякие приколы вытворять"
+        },
+        {
+            question: "Напишите мою фамилию на американском языке. Если что я Вербицкий (Eng)",
+            answer: "Verbytskyy",
+            explanation: "люблю себя"
+        },
+        {
+            question: "С углубленным изучением чего была школа, в которой я учился в Киеве? (Rus)",
+            answer: "Английский язык",
+            explanation: "Чтоб туды попасть надо было сдать только английский язык, а  в другие школы украинский язык и математику("
+        },
+        {
+            question: "Во что мы играли с Владиком на одной из ночевок? (Eng)",
+            answer: "Dead Space",
+            explanation: "Dead Space — медиафраншиза, объединяющая ряд компьютерных игр в жанре survival horror, анимационных фильмов, книг и комиксов по их мотивам."
+        },
+        {
+            question: "Какая у меня категория годности в военкомате?",
+            answer: "Б3",
+            explanation: "Блин я думал что Б2 или Б1. Щас проверил и Б3"
+        },
+        {
+            question: "Как зовут моего друга, с которым мы одногруппники?",
+            answer: "Никита",
+            explanation: "Он милый и очень добрый и пиздец смешной"
+        },
+        {
+            question: "Как называется моя любимая музыкальная группа? (Eng)",
+            answer: "DEREVNYA",
+            explanation: "Сначала - DEREVNYA, потом - Paramore"
+        },
+        {
+            question: "В какой кофейне я много проводил времени в молодости в Краснодаре?",
+            answer: "62",
+            explanation: "наш дом"
+        },
+        {
+            question: "Как зовут одногруппника, который загомофобил Даню? (Rus)",
+            answer: "дима",
+            explanation: "Я с ним много общаюс кста"
+        },
+        {
+            question: "Чем я отравился в Жак-Андрэ осенью? (число)",
+            answer: "Карбонара",
+            explanation: "Да, был пиздец. Я даже впервые в жизни вызывал скорую себе. Из хорошего в том месяце был только выпуск that's so true. Щас все хорошо, отделался испугом сильным, могу есть все"
+        },
+        {
+            question: "Мой любимый парк в Краснодаре (одно слово)",
+            answer: "Солнечный",
+            explanation: "Я там очень на многое решался в своей жизни. Я бы и с вами не познакомился, если б не решался там осенью на 2 курсе. И с Ксюшей мы там первый раз гуляли. И Дима там на мена орал и кричал крути педали пока пизды не дали"
+        },
+        {
+            question: "Как называется мой факультет? (аббревиату́ра)",
+            answer: "фктипм",
+            explanation: "Факультет компьютерных технологий и прикладной математики"
+        },
+        {
+            question: "Краснодар лучше Москвы, потому что тут есть [...]",
+            answer: "табрис",
+            explanation: "«Табрис» – российская сеть супермаркетов розничной торговли с головным офисом в Краснодаре. Управляющая компания – ООО «ТВК-Р». «Табрис» занимает на рынке Краснодарского края нишу класса middle +. В торговой сети представлено свыше 15 тысяч наименований товаров. Сеть имеет 15 супермаркетов."
+        },
+        {
+            question: "Как зовут последнего человека, кого добавили в городок 62? P.S. Вопрос был создан 8 мая",
+            answer: "диана",
+            explanation: "Это Диана ну на момент 08.05 точно да"
+        },
+        {
+            question: "На какой остановке трамвая я живу? (фамилия)",
+            answer: "Осипенко",
+            explanation: "Поли́на Дени́совна Осипе́нко — советская лётчица; одна из первых женщин, удостоенных звания Герой Советского Союза."
+        },
+        {
+            question: "В какой российский город я еще поеду в этом году?",
+            answer: "Липецк",
+            explanation: "На свадьбу к Эмме"
+        },
+        {
+            question: "Кто мой главный биас из стрей кидс в этом году?",
+            answer: "i.n.",
+            explanation: "Если б можно было приложить тут фотку, я бы приложил"
+        },
+                {
+            question: "Напишите мое имя на украинском языке (Rus)",
+            answer: "Данило",
+            explanation: "Данило — українське біблійне чоловіче ім'я, поширене в азійських країнах, походить від івр. דָּנִיֵּאל, Даніель, «Бог мій суддя». Існує рідковживана жіноча форма імені — Даниїла. Розмовні та зменшувальні форми: Дани́лко, Дани́лонько, Дани́лочко, Да́ня, Данько, Да́нцьо, Дану́сик та інші."
+        },
+    ];
+
+    let currentQuestion = 0;
+    const totalQuestions = questions.length;
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function () {
+        const userName = localStorage.getItem('userName') || 'Гость';
+        document.getElementById('userNameDisplay').textContent = userName;
+
+        const questionsContainer = document.getElementById('questionsContainer');
+        const correctAnswers = JSON.parse(localStorage.getItem('task1CorrectAnswers') || '[]');
+
+        // Создаем карточки вопросов
+        questions.forEach((q, index) => {
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            questionCard.id = `question-${index}`;
+            questionCard.innerHTML = `
+                    <div>
+                        <div class="question-text">Вопрос ${index + 1}: ${q.question}</div>
+                        <input type="text" class="answer-input" id="answer-${index}" placeholder="Ваш ответ...">
+                        <button class="check-btn" onclick="checkAnswer(${index})">Проверить</button>
+                    </div>
+                    <div class="feedback" id="feedback-${index}">
+                        <div class="correct-feedback">✓ Правильно!</div>
+                        <div class="time-stamp" id="timeStamp-${index}"></div>
+                        <div class="explanation">${q.explanation}</div>
+                    </div>
+                `;
+
+            questionsContainer.appendChild(questionCard);
+
+            // Если ответ уже был дан, показываем feedback
+            if (correctAnswers.includes(index)) {
+                document.getElementById(`feedback-${index}`).style.display = 'block';
+                document.getElementById(`answer-${index}`).value = localStorage.getItem(`task1-answer-${index}`) || '';
+            }
+        });
+
+        // Показываем первый вопрос
+        showQuestion(0);
+        updateProgress();
+        updateNavButtons();
+    });
+
+    // Показать вопрос
+    function showQuestion(index) {
+        document.querySelectorAll('.question-card').forEach(card => {
+            card.classList.remove('active');
+        });
+
+        document.getElementById(`question-${index}`).classList.add('active');
+        currentQuestion = index;
+        document.getElementById('questionCounter').textContent = `${index + 1}/${totalQuestions}`;
+        updateNavButtons();
+    }
+
+    // Следующий вопрос
+    function nextQuestion() {
+        if (currentQuestion < totalQuestions - 1) {
+            showQuestion(currentQuestion + 1);
+        }
+    }
+
+    // Предыдущий вопрос
+    function prevQuestion() {
+        if (currentQuestion > 0) {
+            showQuestion(currentQuestion - 1);
+        }
+    }
+
+    // Обновление кнопок навигации
+    function updateNavButtons() {
+        document.getElementById('prevBtn').disabled = currentQuestion === 0;
+        document.getElementById('nextBtn').disabled = currentQuestion === totalQuestions - 1;
+    }
+
+    function checkAnswer(index) {
+        document.querySelectorAll('.incorrect-feedback, .incorrect-image, .incorrect-video').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        const userAnswer = document.getElementById(`answer-${index}`).value.trim().toLowerCase();
+        const correctAnswer = questions[index].answer.toLowerCase();
+        let feedback = document.getElementById(`feedback-${index}`);
+
+        const incorrectVideo = document.createElement('video');
+        incorrectVideo.id = `incorrect-video-${index}`;
+        incorrectVideo.className = 'incorrect-video';
+        incorrectVideo.controls = true;
+        incorrectVideo.muted = true;
+        incorrectVideo.autoplay = true;
+        incorrectVideo.loop = true;
+        document.getElementById(`question-${index}`).appendChild(incorrectVideo);
+
+        // Создаем элементы для неправильного ответа, если их нет
+        if (!document.getElementById(`incorrect-feedback-${index}`)) {
+            const incorrectFeedback = document.createElement('div');
+            incorrectFeedback.id = `incorrect-feedback-${index}`;
+            incorrectFeedback.className = 'incorrect-feedback';
+            document.getElementById(`question-${index}`).appendChild(incorrectFeedback);
+
+            // Создаем элемент для изображения
+            const incorrectImage = document.createElement('img');
+            incorrectImage.id = `incorrect-image-${index}`;
+            incorrectImage.className = 'incorrect-image';
+            incorrectImage.src = '1.jpg';
+            incorrectImage.alt = 'Неправильный ответ';
+            document.getElementById(`question-${index}`).appendChild(incorrectImage);
+        }
+
+        // Скрываем все сообщения и изображения о неправильных ответах
+        document.querySelectorAll('.incorrect-feedback, .incorrect-image').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        if (userAnswer === correctAnswer) {
+            feedback.style.display = 'block';
+
+            // Записываем время ответа
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById(`timeStamp-${index}`).textContent = `Правильно отвечено: ${timeString}`;
+
+            // Сохраняем в localStorage
+            let correctAnswers = JSON.parse(localStorage.getItem('task1CorrectAnswers') || '[]');
+            if (!correctAnswers.includes(index)) {
+                correctAnswers.push(index);
+                localStorage.setItem('task1CorrectAnswers', JSON.stringify(correctAnswers));
+                localStorage.setItem(`task1-answer-${index}`, userAnswer);
+
+                // Обновляем баллы на главной странице
+                updateMainPagePoints(correctAnswers.length);
+            }
+
+            updateProgress();
+
+            // Вибрация для мобильных
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+        } else {
+            // Генерируем случайную фразу/действие при каждом неправильном ответе
+            const phrases = [
+                {type: 'text', content: 'Неправильно!'},
+                {type: 'text', content: 'Ошибаться это нормально❤'},
+                {type: 'text', content: 'Попробуй ещё раз!'},
+                {type: 'text', content: 'Оксана, ты себя вообще видела?'},
+                {type: 'text', content: 'Вибрацию чувствуешь?'},
+                {type: 'text', content: 'Вахуи!'},
+                {type: 'text', content: 'Блять?!(голосом лизы)'},
+                {type: 'text', content: 'Это тебе на подумать еще попытка'},
+                {type: 'image', content: '1.jpg'},
+                {type: 'image', content: 'о как.png'},
+                {type: 'image', content: 'labubu-inflate.gif'},
+                {type: 'video', content: '../img/зайка.mp4'}
+            ];
+
+            const randomResponse = phrases[Math.floor(Math.random() * phrases.length)];
+
+            if (randomResponse.type === 'text') {
+                const incorrectFeedback = document.getElementById(`incorrect-feedback-${index}`);
+                incorrectFeedback.textContent = randomResponse.content;
+                incorrectFeedback.style.display = 'block';
+            } else if (randomResponse.type === 'image') {
+                const incorrectImage = document.getElementById(`incorrect-image-${index}`);
+                incorrectImage.src = randomResponse.content;
+                incorrectImage.style.display = 'block';
+            } else if (randomResponse.type === 'video') {
+                incorrectVideo.src = randomResponse.content;
+                incorrectVideo.type = 'video/mp4'; // Укажите правильный MIME-тип
+                incorrectVideo.style.display = 'block';
+                incorrectVideo.playsInline = true; // Для iOS
+                incorrectVideo.play().catch(e => console.log('Autoplay prevented:', e));
+            }
+
+
+            // Вибрация для мобильных
+            if ('vibrate' in navigator) {
+                navigator.vibrate(200);
+            }
+        }
+    }
+
+    // Обновление прогресса
+    function updateProgress() {
+        const correctAnswers = JSON.parse(localStorage.getItem('task1CorrectAnswers') || '[]');
+        const progressCount = document.getElementById('progressCount');
+        const progressBar = document.getElementById('progressBar');
+
+        const count = correctAnswers.length;
+        const percentage = (count / totalQuestions) * 100;
+
+        progressCount.textContent = `${count}/${totalQuestions}`;
+        progressBar.style.width = `${percentage}%`;
+    }
+
+    // Обновление баллов на главной странице
+    function updateMainPagePoints(points) {
+        // Если главная страница открыта в другом окне
+        if (window.opener) {
+            window.opener.updatePoints(points * 5); // 5 баллов за каждый правильный ответ
+        }
+
+        // Обновляем в localStorage для главной страницы
+        localStorage.setItem('userPoints', (points * 5).toString());
+    }
+</script>
+</body>
+</html>

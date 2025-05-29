@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Конкурс 4 - Угадай элемент</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4CC9F0;
+            --accent-color: #20C997;
+        }
+
+        body {
+            font-family: 'Comic Neue', 'Arial Rounded MT Bold', 'Segoe UI Emoji', sans-serif;
+            background-color: #f8f9fa;
+            padding-bottom: 2rem;
+        }
+
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), #FF8E8E);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .progress-container {
+            background: white;
+            border-radius: 50px;
+            padding: 0.3rem;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            background-color: var(--accent-color);
+            border-radius: 50px;
+            transition: width 0.5s ease;
+        }
+
+        .main-content {
+            padding: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .instructions {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: #495057;
+            text-align: center;
+        }
+
+        .question-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .question-container.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 8px;
+            padding: 0.8rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-text {
+            filter: blur(5px);
+            transition: filter 0.3s;
+            user-select: none;
+        }
+
+        .item-text.revealed {
+            filter: none;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .answer-input {
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 0.8rem;
+            font-size: 1rem;
+        }
+
+        .check-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .check-btn:hover {
+            background-color: #3aa8d8;
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        .correct-feedback {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .incorrect-feedback {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .task-nav {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .task-btn {
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .task-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .task-btn.completed {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .home-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.2rem;
+            font-size: 1rem;
+            margin-top: 2rem;
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .home-btn:hover {
+            background-color: #e05555;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 576px) {
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .item-card {
+                height: 50px;
+            }
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Всегда 2 колонки */
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 8px;
+            padding: 0.8rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            min-height: 60px; /* Минимальная высота */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Уменьшаем отступы на очень маленьких экранах */
+        @media (max-width: 400px) {
+            .items-grid {
+                gap: 0.5rem;
+            }
+
+            .item-card {
+                padding: 0.6rem;
+                min-height: 50px;
+            }
+
+            .item-text {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Для экранов шире 600px можно увеличить размер карточек */
+        @media (min-width: 600px) {
+            .item-card {
+                min-height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div id="userNameDisplay" class="fw-bold"></div>
+                <div id="progressCount">0/3</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="task-nav" id="taskNav">
+            <!-- Кнопки заданий будут добавлены через JS -->
+        </div>
+
+        <div id="tasksContainer">
+            <!-- Задания будут добавлены через JS -->
+        </div>
+
+        <a href="../index.html" class="home-btn">Вернуться на главную</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Все задания с вопросами и ответами
+        const tasks = [
+            {
+                question: "Назовите всех участников деревни",
+                items: [
+                    "Марго", "Диана", "Тимур",
+                    "Владик", "Полина", "Егор",
+                    "Оксана", "Даня"
+                ],
+                points: 10
+            },
+            {
+                question: "В каких городах я успел побывать за 20 лет?",
+                items: [
+                    "Москва", "Краснодар", "Севастополь", "Майкоп",
+                    "Феодосия", "Симферополь", "Львов", "Киев",
+                    "Черновцы", "Винница", "Чикаго", "Милуоки"
+                ],
+                points: 15
+            },
+            {
+                question: "Мои самые прослушиваемые артисты на Spotify за все время?",
+                items: [
+                    "Taylor Swift", "Halsey", "Sabrina Carpenter",
+                    "Gracie Abrams", "Ariana Grande", "Paramore",
+                    "Linkin Park", "Chappell Roan", "Charli xcx",
+                    "Stray Kids", "Пошлая Молли", "Fletcher"
+                ],
+                points: 5
+            }
+        ];
+
+        let currentTask = 0;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            const userName = localStorage.getItem('userName') || 'Гость';
+            document.getElementById('userNameDisplay').textContent = userName;
+
+            const taskNav = document.getElementById('taskNav');
+            const tasksContainer = document.getElementById('tasksContainer');
+            const completedTasks = JSON.parse(localStorage.getItem('task4Completed') || '[]');
+
+            // Создаем кнопки навигации и контейнеры заданий
+            tasks.forEach((task, index) => {
+                // Кнопка задания
+                const taskBtn = document.createElement('button');
+                taskBtn.className = `task-btn ${index === 0 ? 'active' : ''} ${completedTasks.includes(index) ? 'completed' : ''}`;
+                taskBtn.textContent = `Задание ${index + 1}`;
+                taskBtn.addEventListener('click', () => showTask(index));
+                taskNav.appendChild(taskBtn);
+
+                // Контейнер задания
+                const taskContainer = document.createElement('div');
+                taskContainer.className = `question-container ${index === 0 ? 'active' : ''}`;
+                taskContainer.id = `task-${index}`;
+                taskContainer.innerHTML = `
+                    <div class="question-text">${task.question}</div>
+
+                    <div class="items-grid">
+                        ${task.items.map((item, i) => `
+                            <div class="item-card">
+                                <div class="item-text ${completedTasks.includes(index) || localStorage.getItem(`task4-${index}-${i}`) ? 'revealed' : ''}"
+                                     data-index="${i}" data-task="${index}">
+                                    ${item}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="input-group">
+                        <input type="text" class="form-control answer-input"
+                               id="answerInput-${index}" placeholder="Введите ответ...">
+                        <button class="btn check-btn" onclick="checkAnswer(${index})">Проверить</button>
+                    </div>
+
+                    <div class="feedback correct-feedback" id="correctFeedback-${index}">
+                        ✓ Правильно! +${task.points} баллов
+                    </div>
+                    <div class="feedback incorrect-feedback" id="incorrectFeedback-${index}">
+                        Неправильно, попробуйте еще раз
+                    </div>
+                `;
+
+                tasksContainer.appendChild(taskContainer);
+
+                // Если задание уже выполнено, блокируем ввод
+                if (completedTasks.includes(index)) {
+                    document.getElementById(`answerInput-${index}`).disabled = true;
+                }
+            });
+
+            updateProgress();
+        });
+
+        // Показать выбранное задание
+        function showTask(index) {
+            currentTask = index;
+
+            // Обновляем активные кнопки
+            document.querySelectorAll('.task-btn').forEach((btn, i) => {
+                btn.classList.remove('active');
+                if (i === index) btn.classList.add('active');
+            });
+
+            // Обновляем видимые задания
+            document.querySelectorAll('.question-container').forEach((container, i) => {
+                container.classList.remove('active');
+                if (i === index) container.classList.add('active');
+            });
+        }
+
+        // Проверка ответа
+        function checkAnswer(taskIndex) {
+            const input = document.getElementById(`answerInput-${taskIndex}`);
+            const userAnswer = input.value.trim().toLowerCase();
+            const task = tasks[taskIndex];
+            let found = false;
+
+            task.items.forEach((item, itemIndex) => {
+                if (item.toLowerCase() === userAnswer) {
+                    const itemElement = document.querySelector(`.item-text[data-task="${taskIndex}"][data-index="${itemIndex}"]`);
+                    if (!itemElement.classList.contains('revealed')) {
+                        itemElement.classList.add('revealed');
+                        localStorage.setItem(`task4-${taskIndex}-${itemIndex}`, 'true');
+                        found = true;
+
+                        const allRevealed = task.items.every((_, i) =>
+                            document.querySelector(`.item-text[data-task="${taskIndex}"][data-index="${i}"]`).classList.contains('revealed')
+                        );
+
+                        if (allRevealed) {
+                            const completedTasks = JSON.parse(localStorage.getItem('task4Completed') || '[]');
+                            if (!completedTasks.includes(taskIndex)) {
+                                completedTasks.push(taskIndex);
+                                localStorage.setItem('task4Completed', JSON.stringify(completedTasks));
+                                document.getElementById(`correctFeedback-${taskIndex}`).style.display = 'block';
+                                input.disabled = true;
+
+                                // Обновляем кнопку задания
+                                document.querySelectorAll('.task-btn')[taskIndex].classList.add('completed');
+
+                                updateMainPagePoints(task.points);
+                                updateProgress();
+
+                                if ('vibrate' in navigator) {
+                                    navigator.vibrate([100, 50, 100]);
+                                }
+                            }
+                        } else {
+                            document.getElementById(`correctFeedback-${taskIndex}`).style.display = 'block';
+                            setTimeout(() => {
+                                document.getElementById(`correctFeedback-${taskIndex}`).style.display = 'none';
+                            }, 2000);
+
+                            if ('vibrate' in navigator) {
+                                navigator.vibrate(50);
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (!found) {
+                document.getElementById(`incorrectFeedback-${taskIndex}`).style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById(`incorrectFeedback-${taskIndex}`).style.display = 'none';
+                }, 2000);
+
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(200);
+                }
+            }
+
+            input.value = '';
+        }
+
+        // Обновление прогресса
+        function updateProgress() {
+            const completedTasks = JSON.parse(localStorage.getItem('task4Completed') || '[]');
+            const progressCount = document.getElementById('progressCount');
+            const progressBar = document.getElementById('progressBar');
+
+            const count = completedTasks.length;
+            const total = tasks.length;
+            const percentage = (count / total) * 100;
+
+            progressCount.textContent = `${count}/${total}`;
+            progressBar.style.width = `${percentage}%`;
+        }
+
+        // Обновление баллов на главной странице
+        function updateMainPagePoints(points) {
+            if (window.opener) {
+                window.opener.updatePoints(points);
+            }
+
+            const currentPoints = parseInt(localStorage.getItem('userPoints') || '0');
+            localStorage.setItem('userPoints', (currentPoints + points).toString());
+        }
+    </script>
+</body>
+</html>

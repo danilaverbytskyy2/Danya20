@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Конкурс 3 - 7 Смертных Грехов</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4CC9F0;
+            --accent-color: #20C997;
+        }
+
+        body {
+            font-family: 'Comic Neue', 'Arial Rounded MT Bold', 'Segoe UI Emoji', sans-serif;
+            background-color: #f8f9fa;
+            padding-bottom: 2rem;
+            touch-action: pan-y;
+        }
+
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), #FF8E8E);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-container {
+            background: white;
+            border-radius: 50px;
+            padding: 0.3rem;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            background-color: var(--accent-color);
+            border-radius: 50px;
+            transition: width 0.5s ease;
+        }
+
+        .main-content {
+            padding: 1rem;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                padding: 1rem;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+        }
+
+        .instructions {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: #495057;
+            text-align: center;
+        }
+
+        .characters-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .character-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            touch-action: none;
+            user-select: none;
+            transition: transform 0.2s;
+            background-color: white;
+        }
+
+        .character-item.dragging {
+            transform: scale(1.05);
+            z-index: 100;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .character-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .character-name {
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+            background: white;
+            color: #333;
+        }
+
+        .save-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            width: 100%;
+            max-width: 300px;
+            margin: 1rem auto;
+            display: block;
+            transition: all 0.3s;
+        }
+
+        .save-btn:hover {
+            background-color: #1aa179;
+            transform: translateY(-2px);
+        }
+
+        .save-btn:disabled {
+            background-color: #cccccc;
+            transform: none;
+        }
+
+        .home-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.2rem;
+            font-size: 1rem;
+            margin: 1.5rem auto 0;
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 400px) {
+            .characters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .character-img {
+                height: 180px;
+            }
+        }
+
+        .character-img-container {
+            width: 100%;
+            height: 150px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+        }
+
+        .character-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s;
+        }
+
+        .character-item:hover .character-img {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 400px) {
+            .character-img-container {
+                height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="header-bar">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div id="userNameDisplay" class="fw-bold"></div>
+            <div id="progressCount">Не завершено</div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="instructions">
+        <h3>Расставь персонажей "Семи смертных грехов" по моей любимости!</h3>
+        <p>Перетаскивай карточки, чтобы изменить их порядок</p>
+    </div>
+
+    <div class="characters-grid" id="charactersGrid">
+        <!-- Персонажи будут добавлены через JS -->
+    </div>
+
+    <button class="save-btn" id="saveBtn">Сохранить порядок</button>
+    <a href="../index.html" class="home-btn">Вернуться на главную</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Персонажи из "Класса убийц"
+    const characters = [
+        {
+            id: 1,
+            name: "Мелиодас (Гнев)",
+            image: "../img/2.webp"
+        },
+        {
+            id: 2,
+            name: "Эсканор (Гордыня)",
+            image: "../img/2.gif"
+        },
+        {
+            id: 3,
+            name: "Гаутер (Похоть)",
+            image: "../img/4.gif"
+        },
+        {
+            id: 4,
+            name: "Мерлин (Обжорство)",
+            image: "../img/5.gif"
+        },
+        {
+            id: 5,
+            name: "Элизабет/Лиз (Ангел)",
+            image: "../img/7.gif"
+        },
+        {
+            id: 6,
+            name: "Кинг (Лень)",
+            image: "../img/6.gif"
+        },
+        {
+            id: 7,
+            name: "Бан (Жадность)",
+            image: "../img/8.gif"
+        },
+        {
+            id: 8,
+            name: "Диана (Зависть)",
+            image: "../img/9.gif"
+        },
+        {
+            id: 9,
+            name: "Зелдрис (Заповедь Благочестие)",
+            image: "../img/10.gif"
+        },
+        {
+            id: 10,
+            name: "Монспиет (Безмолвие) и Дерриер (Целомудрие)",
+            image: "../img/11.gif"
+        }
+    ];
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function () {
+        const userName = localStorage.getItem('userName') || 'Гость';
+        document.getElementById('userNameDisplay').textContent = userName;
+
+        const isCompleted = localStorage.getItem('task3Completed') === 'true';
+        const saveBtn = document.getElementById('saveBtn');
+
+        if (isCompleted) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Порядок сохранён!';
+            document.getElementById('progressCount').textContent = 'Завершено';
+            document.getElementById('progressBar').style.width = '100%';
+        }
+
+        let savedOrder = JSON.parse(localStorage.getItem('task3CharacterOrder'));
+        if (!savedOrder) {
+            savedOrder = characters.map(c => c.id);
+        }
+
+        const sortedCharacters = [...characters].sort((a, b) => {
+            return savedOrder.indexOf(a.id) - savedOrder.indexOf(b.id);
+        });
+
+        const grid = document.getElementById('charactersGrid');
+        sortedCharacters.forEach(character => {
+            const characterElement = createCharacterElement(character);
+            grid.appendChild(characterElement);
+        });
+
+        initDragAndDrop();
+
+        saveBtn.addEventListener('click', function () {
+            const characterOrder = Array.from(document.querySelectorAll('.character-item'))
+                .map(el => parseInt(el.dataset.id));
+
+            localStorage.setItem('task3CharacterOrder', JSON.stringify(characterOrder));
+            localStorage.setItem('task3Completed', 'true');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Порядок сохранён!';
+            document.getElementById('progressCount').textContent = 'Завершено';
+            document.getElementById('progressBar').style.width = '100%';
+
+            updateMainPagePoints(30);
+
+            if ('vibrate' in navigator) {
+                navigator.vibrate([100, 50, 100]);
+            }
+        });
+    });
+
+    function createCharacterElement(character) {
+        const div = document.createElement('div');
+        div.className = 'character-item';
+        div.dataset.id = character.id;
+        div.innerHTML = `
+                <img src="${character.image}" alt="${character.name}" class="character-img">
+                <div class="character-name">${character.name}</div>
+            `;
+        return div;
+    }
+
+    function initDragAndDrop() {
+        const charactersGrid = document.getElementById('charactersGrid');
+        const characterItems = document.querySelectorAll('.character-item');
+
+        let draggedItem = null;
+        let touchStartY = 0;
+
+        characterItems.forEach(item => {
+            item.addEventListener('touchstart', function (e) {
+                e.preventDefault();
+                draggedItem = this;
+                draggedItem.classList.add('dragging');
+                touchStartY = e.touches[0].clientY;
+
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(10);
+                }
+            }, {passive: false});
+
+            item.addEventListener('touchmove', function (e) {
+                if (!draggedItem) return;
+                e.preventDefault();
+
+                const touch = e.touches[0];
+                const touchY = touch.clientY;
+
+                draggedItem.style.position = 'absolute';
+                draggedItem.style.top = `${touchY - draggedItem.offsetHeight / 2}px`;
+                draggedItem.style.left = `${draggedItem.offsetLeft}px`;
+
+                const elementsBelow = document.elementsFromPoint(touch.clientX, touch.clientY);
+                const characterBelow = elementsBelow.find(el => el.classList.contains('character-item') && el !== draggedItem);
+
+                if (characterBelow) {
+                    const rect = characterBelow.getBoundingClientRect();
+                    const midpoint = rect.top + rect.height / 2;
+
+                    if (touchY < midpoint) {
+                        charactersGrid.insertBefore(draggedItem, characterBelow);
+                    } else {
+                        charactersGrid.insertBefore(draggedItem, characterBelow.nextSibling);
+                    }
+                }
+            }, {passive: false});
+
+            item.addEventListener('touchend', function () {
+                if (!draggedItem) return;
+
+                draggedItem.classList.remove('dragging');
+                draggedItem.style.position = '';
+                draggedItem.style.top = '';
+                draggedItem.style.left = '';
+                draggedItem = null;
+            });
+
+            // Для десктопов
+            item.setAttribute('draggable', true);
+            item.addEventListener('dragstart', function () {
+                draggedItem = this;
+                draggedItem.classList.add('dragging');
+            });
+
+            item.addEventListener('dragover', function (e) {
+                e.preventDefault();
+            });
+
+            item.addEventListener('dragenter', function (e) {
+                e.preventDefault();
+                this.classList.add('over');
+            });
+
+            item.addEventListener('dragleave', function () {
+                this.classList.remove('over');
+            });
+
+            item.addEventListener('drop', function () {
+                if (draggedItem !== this) {
+                    charactersGrid.insertBefore(draggedItem, this);
+                }
+                this.classList.remove('over');
+            });
+
+            item.addEventListener('dragend', function () {
+                characterItems.forEach(item => {
+                    item.classList.remove('over');
+                    item.classList.remove('dragging');
+                });
+            });
+        });
+    }
+
+    function updateMainPagePoints(points) {
+        if (window.opener) {
+            window.opener.updatePoints(points);
+        }
+
+        const currentPoints = parseInt(localStorage.getItem('userPoints') || '0');
+        localStorage.setItem('userPoints', (currentPoints + points).toString());
+    }
+</script>
+</body>
+</html>

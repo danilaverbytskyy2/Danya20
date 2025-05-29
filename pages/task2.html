@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Конкурс 2 - Удача</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4CC9F0;
+            --accent-color: #20C997;
+        }
+
+        body {
+            font-family: 'Comic Neue', 'Arial Rounded MT Bold', 'Segoe UI Emoji', sans-serif;
+            background-color: #f8f9fa;
+            padding-bottom: 2rem;
+            text-align: center;
+        }
+
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), #FF8E8E);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .progress-container {
+            background: white;
+            border-radius: 50px;
+            padding: 0.3rem;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            background-color: var(--accent-color);
+            border-radius: 50px;
+            transition: width 0.5s ease;
+        }
+
+        .main-content {
+            padding: 2rem 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .instructions {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            color: #495057;
+        }
+
+        .big-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin: 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .big-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .big-button:active {
+            transform: scale(0.98);
+        }
+
+        .big-button.success {
+            background-color: var(--accent-color);
+            animation: pulse 0.5s;
+        }
+
+        .time-stamp {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .attempts-counter {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-top: 1rem;
+        }
+
+        .home-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.2rem;
+            font-size: 1rem;
+            margin-top: 2rem;
+            display: inline-block;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .home-btn:hover {
+            background-color: #e05555;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 576px) {
+            .big-button {
+                width: 150px;
+                height: 150px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div id="userNameDisplay" class="fw-bold"></div>
+                <div id="progressCount">Не завершено</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="instructions">
+            <h2>Конкурс на удачу!</h2>
+            <p>Вероятность того, что при нажатии кнопка загорится зеленым - всего 0.5%.</p>
+            <p>Нажимайте на кнопку, пока она не станет зеленой и получите промокод на +15 баллов! Топ-3 по скорости получат еще по +15 баллов</p>
+        </div>
+
+        <button class="big-button" id="luckButton">НАЖМИ МЕНЯ</button>
+
+        <div class="time-stamp" id="successTime"></div>
+        <div class="attempts-counter" id="attemptsCounter">Попыток: 0</div>
+
+        <a href="../index.html" class="home-btn">Вернуться на главную</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            const userName = localStorage.getItem('userName') || 'Гость';
+            document.getElementById('userNameDisplay').textContent = userName;
+
+            const isCompleted = localStorage.getItem('task2Completed') === 'true';
+            const attempts = parseInt(localStorage.getItem('task2Attempts') || 0);
+
+            document.getElementById('attemptsCounter').textContent = `Попыток: ${attempts}`;
+
+            if (isCompleted) {
+                document.getElementById('luckButton').classList.add('success');
+                document.getElementById('luckButton').textContent = 'Промокод: BUTTON';
+                document.getElementById('luckButton').disabled = true;
+                document.getElementById('successTime').style.display = 'block';
+                document.getElementById('successTime').textContent = `Успех достигнут: ${localStorage.getItem('task2SuccessTime')}`;
+                document.getElementById('progressCount').textContent = 'Завершено';
+                document.getElementById('progressBar').style.width = '100%';
+            }
+        });
+
+        // Обработка нажатия на кнопку
+        document.getElementById('luckButton').addEventListener('click', function() {
+            const button = this;
+            let attempts = parseInt(localStorage.getItem('task2Attempts') || 0);
+            attempts++;
+            localStorage.setItem('task2Attempts', attempts.toString());
+            document.getElementById('attemptsCounter').textContent = `Попыток: ${attempts}`;
+
+            // Вибрация для мобильных
+            if ('vibrate' in navigator) {
+                navigator.vibrate(10);
+            }
+
+            // 1% шанс успеха
+            if (Math.random() < 0.005 || attempts >= 527) { // Добавлен "защитный" механизм после 100 попыток
+                button.classList.add('success');
+                button.textContent = 'Промокод: BUTTON';
+                button.disabled = true;
+
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                document.getElementById('successTime').style.display = 'block';
+                document.getElementById('successTime').textContent = `Успех достигнут: ${timeString}`;
+
+                // Сохраняем в localStorage
+                localStorage.setItem('task2Completed', 'true');
+                localStorage.setItem('task2SuccessTime', timeString);
+                document.getElementById('progressCount').textContent = 'Завершено';
+                document.getElementById('progressBar').style.width = '100%';
+
+                // Обновляем баллы на главной странице
+                // updateMainPagePoints(15);
+
+                // Вибрация успеха
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+            } else {
+                // Анимация нажатия
+                button.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    button.style.transform = 'scale(1)';
+                }, 100);
+            }
+        });
+
+        // Обновление баллов на главной странице
+        function updateMainPagePoints(points) {
+            // Если главная страница открыта в другом окне
+            if (window.opener) {
+                window.opener.updatePoints(points);
+            }
+
+            // Обновляем в localStorage для главной страницы
+            const currentPoints = parseInt(localStorage.getItem('userPoints') || '0');
+            localStorage.setItem('userPoints', (currentPoints + points).toString());
+        }
+    </script>
+</body>
+</html>
