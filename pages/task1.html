@@ -320,7 +320,7 @@
             answer: "i.n.",
             explanation: "Если б можно было приложить тут фотку, я бы приложил"
         },
-                {
+        {
             question: "Напишите мое имя на украинском языке (Rus)",
             answer: "Данило",
             explanation: "Данило — українське біблійне чоловіче ім'я, поширене в азійських країнах, походить від івр. דָּנִיֵּאל, Даніель, «Бог мій суддя». Існує рідковживана жіноча форма імені — Даниїла. Розмовні та зменшувальні форми: Дани́лко, Дани́лонько, Дани́лочко, Да́ня, Данько, Да́нцьо, Дану́сик та інші."
@@ -496,10 +496,27 @@
                 incorrectImage.style.display = 'block';
             } else if (randomResponse.type === 'video') {
                 incorrectVideo.src = randomResponse.content;
-                incorrectVideo.type = 'video/mp4'; // Укажите правильный MIME-тип
+                incorrectVideo.type = 'video/mp4';
                 incorrectVideo.style.display = 'block';
                 incorrectVideo.playsInline = true; // Для iOS
-                incorrectVideo.play().catch(e => console.log('Autoplay prevented:', e));
+                incorrectVideo.muted = false; // Отключаем mute
+                incorrectVideo.volume = 1; // Устанавливаем максимальную громкость
+
+                // Пытаемся включить автовоспроизведение со звуком
+                const playPromise = incorrectVideo.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        // Если автовоспроизведение со звуком запрещено, пробуем с muted
+                        incorrectVideo.muted = true;
+                        incorrectVideo.play()
+                            .then(() => {
+                                // После начала воспроизведения пробуем включить звук
+                                incorrectVideo.muted = false;
+                            })
+                            .catch(e => console.log('Autoplay prevented:', e));
+                    });
+                }
             }
 
 
