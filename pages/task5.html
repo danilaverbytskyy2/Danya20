@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Конкурс 5 - Угадай человека</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4CC9F0;
+            --accent-color: #20C997;
+        }
+
+        body {
+            font-family: 'Comic Neue', 'Arial Rounded MT Bold', 'Segoe UI Emoji', sans-serif;
+            background-color: #f8f9fa;
+            padding-bottom: 2rem;
+        }
+
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-color), #FF8E8E);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .progress-container {
+            background: white;
+            border-radius: 50px;
+            padding: 0.3rem;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            background-color: var(--accent-color);
+            border-radius: 50px;
+            transition: width 0.5s ease;
+        }
+
+        .main-content {
+            padding: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .instructions {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: #495057;
+            text-align: center;
+        }
+
+        .question-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .question-container.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            aspect-ratio: 1/1;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .image-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .answer-input {
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 0.8rem;
+            font-size: 1rem;
+        }
+
+        .check-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .check-btn:hover {
+            background-color: #3aa8d8;
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        .correct-feedback {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .incorrect-feedback {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .hint-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .task-nav {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .task-btn {
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .task-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .task-btn.completed {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .home-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.2rem;
+            font-size: 1rem;
+            margin-top: 2rem;
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .home-btn:hover {
+            background-color: #e05555;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 576px) {
+            .images-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Анимация для правильного ответа */
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .celebrate {
+            animation: celebrate 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div id="userNameDisplay" class="fw-bold"></div>
+                <div id="progressCount">0/3</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="instructions">
+            Угадай человека по фотографии! Введи имя в поле ниже и проверь свой ответ.
+        </div>
+
+        <div class="task-nav" id="taskNav">
+            <!-- Кнопки заданий будут добавлены через JS -->
+        </div>
+
+        <div id="tasksContainer">
+            <!-- Задания будут добавлены через JS -->
+        </div>
+
+        <a href="../index.html" class="home-btn">Вернуться на главную</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Все задания с фотографиями и именами
+        const tasks = [
+            {
+                question: "Кто этот человек?",
+                images: [
+                    "../img/task5/emma-1.jpg",
+                    "../img/task5/emma-2.jpg",
+                    "../img/task5/emma-3.jpg"
+                ],
+                answer: "Эмма",
+                points: 5
+            },
+            {
+                question: "Угадай, кто на фото?",
+                images: [
+                    "../task5/img/5.jpg",
+                    "../task5/img/5.jpg",
+                    "../task5/img/5.jpg"
+                ],
+                answer: "Мария Петрова",
+                hint: "Известная певица",
+                points: 5
+            },
+            {
+                question: "Кто этот известный человек?",
+                images: [
+                    "../task5/img/5.jpg",
+                    "../task5/img/5.jpg",
+                    "../task5/img/5.jpg"
+                ],
+                answer: "Алексей Смирнов",
+                hint: "Актер театра и кино",
+                points: 5
+            },
+            {
+                question: "Узнаешь этого человека?",
+                images: [
+                    "../task5/img/5.jpg",
+                    "../task5/img/5.jpg",
+                    "../task5/img/5.jpg"
+                ],
+                answer: "Елена Ковалева",
+                hint: "Спортсменка, чемпионка мира",
+                points: 5
+            },
+            {
+                question: "Кто этот публичный человек?",
+                images: [
+                    "../task5/img/5.jpg",
+                    "../task5/img/5.jpg",
+                    "../task5/img/5.jpg"
+                ],
+                answer: "Дмитрий Соколов",
+                hint: "Политический деятель",
+                points: 5
+            }
+        ];
+
+        let currentTask = 0;
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            const userName = localStorage.getItem('userName') || 'Гость';
+            document.getElementById('userNameDisplay').textContent = userName;
+
+            const taskNav = document.getElementById('taskNav');
+            const tasksContainer = document.getElementById('tasksContainer');
+            const completedTasks = JSON.parse(localStorage.getItem('task5Completed') || '[]');
+
+            // Создаем кнопки навигации и контейнеры заданий
+            tasks.forEach((task, index) => {
+                // Кнопка задания
+                const taskBtn = document.createElement('button');
+                taskBtn.className = `task-btn ${index === 0 ? 'active' : ''} ${completedTasks.includes(index) ? 'completed' : ''}`;
+                taskBtn.textContent = `Задание ${index + 1}`;
+                taskBtn.addEventListener('click', () => showTask(index));
+                taskNav.appendChild(taskBtn);
+
+                // Контейнер задания
+                const taskContainer = document.createElement('div');
+                taskContainer.className = `question-container ${index === 0 ? 'active' : ''}`;
+                taskContainer.id = `task-${index}`;
+                taskContainer.innerHTML = `
+                    <div class="question-text">${task.question}</div>
+
+                    ${task.hint ? `<div class="hint-text">Подсказка: ${task.hint}</div>` : ''}
+
+                    <div class="images-grid">
+                        ${task.images.map((image, i) => `
+                            <div class="image-card">
+                                <img src="${image}" alt="Фото человека ${i+1}">
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="input-group">
+                        <input type="text" class="form-control answer-input"
+                               id="answerInput-${index}" placeholder="Введите имя..." ${completedTasks.includes(index) ? 'disabled' : ''}>
+                        <button class="btn check-btn" onclick="checkAnswer(${index})" ${completedTasks.includes(index) ? 'disabled' : ''}>
+                            ${completedTasks.includes(index) ? '✓ Угадано' : 'Проверить'}
+                        </button>
+                    </div>
+
+                    <div class="feedback correct-feedback" id="correctFeedback-${index}" ${completedTasks.includes(index) ? 'style="display: block;"' : ''}>
+                        ✓ Правильно! +${task.points} баллов
+                    </div>
+                    <div class="feedback incorrect-feedback" id="incorrectFeedback-${index}">
+                        Неправильно, попробуйте еще раз
+                    </div>
+                `;
+
+                tasksContainer.appendChild(taskContainer);
+            });
+
+            updateProgress();
+        });
+
+        // Показать выбранное задание
+        function showTask(index) {
+            currentTask = index;
+
+            // Обновляем активные кнопки
+            document.querySelectorAll('.task-btn').forEach((btn, i) => {
+                btn.classList.remove('active');
+                if (i === index) btn.classList.add('active');
+            });
+
+            // Обновляем видимые задания
+            document.querySelectorAll('.question-container').forEach((container, i) => {
+                container.classList.remove('active');
+                if (i === index) container.classList.add('active');
+            });
+        }
+
+        // Проверка ответа
+        function checkAnswer(taskIndex) {
+            const input = document.getElementById(`answerInput-${taskIndex}`);
+            const userAnswer = input.value.trim().toLowerCase();
+            const task = tasks[taskIndex];
+            const correctAnswer = task.answer.toLowerCase();
+
+            if (userAnswer === correctAnswer) {
+                // Показываем сообщение об успехе
+                document.getElementById(`correctFeedback-${taskIndex}`).style.display = 'block';
+                input.disabled = true;
+                document.querySelector(`button[onclick="checkAnswer(${taskIndex})"]`).disabled = true;
+                document.querySelector(`button[onclick="checkAnswer(${taskIndex})"]`).textContent = '✓ Угадано';
+
+                // Анимация празднования
+                document.querySelectorAll(`#task-${taskIndex} .image-card`).forEach(card => {
+                    card.classList.add('celebrate');
+                    setTimeout(() => card.classList.remove('celebrate'), 500);
+                });
+
+                // Сохраняем выполнение задания
+                const completedTasks = JSON.parse(localStorage.getItem('task5Completed') || '[]');
+                if (!completedTasks.includes(taskIndex)) {
+                    completedTasks.push(taskIndex);
+                    localStorage.setItem('task5Completed', JSON.stringify(completedTasks));
+
+                    // Обновляем кнопку задания
+                    document.querySelectorAll('.task-btn')[taskIndex].classList.add('completed');
+
+                    updateMainPagePoints(task.points);
+                    updateProgress();
+
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate([100, 50, 100]);
+                    }
+                }
+            } else {
+                // Неправильный ответ
+                document.getElementById(`incorrectFeedback-${taskIndex}`).style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById(`incorrectFeedback-${taskIndex}`).style.display = 'none';
+                }, 2000);
+
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(200);
+                }
+            }
+
+            input.value = '';
+        }
+
+        // Обновление прогресса
+        function updateProgress() {
+            const completedTasks = JSON.parse(localStorage.getItem('task5Completed') || '[]');
+            const progressCount = document.getElementById('progressCount');
+            const progressBar = document.getElementById('progressBar');
+
+            const count = completedTasks.length;
+            const total = tasks.length;
+            const percentage = (count / total) * 100;
+
+            progressCount.textContent = `${count}/${total}`;
+            progressBar.style.width = `${percentage}%`;
+        }
+
+        // Обновление баллов на главной странице
+        function updateMainPagePoints(points) {
+            if (window.opener) {
+                window.opener.updatePoints(points);
+            }
+
+            const currentPoints = parseInt(localStorage.getItem('userPoints') || '0');
+            localStorage.setItem('userPoints', (currentPoints + points).toString());
+        }
+    </script>
+</body>
+</html>
